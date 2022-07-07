@@ -30,11 +30,12 @@ const run = async () => {
 
 		// Todo - Tidy this up, add login to it's own module.
 		app.use(function errorHandler(
-			err: unknown,
+			err: any,
 			req: Request,
 			res: Response,
 			next: NextFunction
 		): Response | void {
+			console.log("Error here : ", err.message);
 			if (err instanceof ValidateError) {
 				console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
 				return res.status(422).json({
@@ -42,7 +43,22 @@ const run = async () => {
 					details: err?.fields,
 				});
 			}
+
 			if (err instanceof Error) {
+				if (err.message.includes("No token provided")) {
+					return res.status(401).json({
+						success: false,
+						message: "Unauthorized, no token provided",
+					});
+				}
+
+				if (err.message.includes("jwt must be provided")) {
+					return res.status(401).json({
+						success: false,
+						message:
+							"JWT must be provided in the Authorization header with the Bearer scheme",
+					});
+				}
 				return res.status(500).json({
 					message: "Internal Server Error",
 				});
