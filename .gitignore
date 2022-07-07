@@ -1,3 +1,4 @@
 node_modules/
 build/
 docker/docker-compose.yml
+config/dev.json
