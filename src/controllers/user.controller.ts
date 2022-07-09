@@ -1,21 +1,28 @@
-import { Body, Controller, Get, Post, Route, Security } from "tsoa";
+import { Body, Controller, Post, Route } from "tsoa";
 import userService from "../services/user.service";
 import IGenericSuccessResponse from "../types/IGenericSuccessResponse";
 import IGenericFailureResponse from "../types/IGenericFailureResponse";
-import IUser from "../types/IUser";
 import IUserLogin from "../types/IUserLogin";
+import IUserRegister from "../types/IUserRegister";
 import { generateToken } from "../authentication/generateToken";
 
 @Route("v1/api/users")
 export class UsersController extends Controller {
 	@Post("register")
 	public async createUser(
-		@Body() user: IUser
+		@Body() user: IUserRegister
 	): Promise<IGenericSuccessResponse | IGenericFailureResponse> {
 		try {
 			const res = await userService.createUser(user);
 			this.setStatus(201);
-			return { success: true, message: "User created.", data: res };
+			return {
+				success: true,
+				message: "User created.",
+				data: {
+					user: res,
+					token: generateToken({ id: res._id.toLocaleString() }),
+				},
+			};
 		} catch (error: any) {
 			this.setStatus(500);
 			let message = error.message;
@@ -42,28 +49,25 @@ export class UsersController extends Controller {
 				success: true,
 				message: "Logged in successful.",
 				data: {
-					...res,
+					user: { ...res },
 					token: generateToken({ id: res._id.toLocaleString() }),
 				},
 			};
 		} catch (error: any) {
 			this.setStatus(500);
 			let message = error.message;
-			console.log("error from harry");
 
-			// Todo - Add error catches
-			if (error.message.includes("User already exists")) {
+			if (error.message.includes("User not found")) {
 				this.setStatus(400);
-				message = "User already exists.";
+				message = "User not found.";
+			}
+
+			if (error.message.includes("Incorrect credentials")) {
+				this.setStatus(401);
+				message = "Incorrect credentials.";
 			}
 
 			return { success: false, message: error.message };
 		}
-	}
-
-	@Security("jwt")
-	@Post("foo")
-	public async foo(): Promise<any> {
-		return { success: true, message: "Foo" };
 	}
 }
