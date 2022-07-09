@@ -6,6 +6,7 @@ import compression from "compression";
 import { ValidateError } from "tsoa";
 import config from "config";
 import mongoose from "mongoose";
+import cors from "cors";
 
 const run = async () => {
 	const app = express();
@@ -25,6 +26,8 @@ const run = async () => {
 		app.use(helmet());
 
 		app.use(compression());
+
+		app.use(cors());
 
 		RegisterRoutes(app);
 

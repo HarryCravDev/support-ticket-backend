@@ -3,6 +3,7 @@ import User from "../models/User.model";
 import bcrypt from "bcryptjs";
 import { Types } from "mongoose";
 import IUserLogin from "../types/IUserLogin";
+import IUserRegister from "../types/IUserRegister";
 
 interface IUserReturn {
 	_id: string | number | Types.ObjectId;
@@ -11,7 +12,7 @@ interface IUserReturn {
 }
 
 class UserService {
-	public async createUser(userData: IUser): Promise<IUserReturn> {
+	public async createUser(userData: IUserRegister): Promise<IUserReturn> {
 		const userExists = await User.findOne({ email: userData.email });
 
 		if (userExists) {
@@ -23,8 +24,8 @@ class UserService {
 
 		try {
 			const user = await User.create({
-				name: userData.name,
 				email: userData.email.toLowerCase(),
+				name: userData.name,
 				password: hashedPassword,
 			});
 
@@ -39,23 +40,19 @@ class UserService {
 	}
 
 	public async login({ email, password }: IUserLogin): Promise<IUserReturn> {
-		try {
-			const user = await User.findOne({ email: email.toLowerCase() });
+		const user = await User.findOne({ email: email.toLowerCase() });
 
-			if (!user) {
-				throw new Error("User not found");
-			}
-
-			const isMatch = await bcrypt.compare(password, user.password);
-
-			if (!isMatch) {
-				throw new Error("Incorrect credentials");
-			}
-
-			return { _id: user._id, name: user.name, email: user.email };
-		} catch (error) {
-			throw new Error("Error logging in");
+		if (!user) {
+			throw new Error("User not found");
 		}
+
+		const isMatch = await bcrypt.compare(password, user.password);
+
+		if (!isMatch) {
+			throw new Error("Incorrect credentials");
+		}
+
+		return { _id: user._id, name: user.name, email: user.email };
 	}
 }
 
