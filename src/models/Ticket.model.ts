@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 const ticketSchema = new mongoose.Schema({
 	user: {
-		// type: mongoose.Schema.Types.ObjectId,
-		type: String,
+		type: mongoose.Schema.Types.ObjectId,
 		required: [true, "User is required"],
 		ref: "User",
 	},
