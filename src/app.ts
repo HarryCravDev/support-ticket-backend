@@ -55,6 +55,13 @@ const run = async () => {
 					});
 				}
 
+				if (err.message.includes("invalid token")) {
+					return res.status(401).json({
+						success: false,
+						message: "Invalid token.",
+					});
+				}
+
 				if (err.message.includes("jwt must be provided")) {
 					return res.status(401).json({
 						success: false,
