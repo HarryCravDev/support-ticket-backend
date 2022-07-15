@@ -1,5 +1,7 @@
 import TicketModel from "../models/Ticket.model";
 import UserModel from "../models/User.model";
+import ICreateTicket from "../types/ICreateTicket";
+import IUpdateTicket from "../types/IUpdateTicket";
 
 class TicketService {
 	public async getTickets(): Promise<any> {
@@ -10,6 +12,19 @@ class TicketService {
 		} catch (error) {
 			throw new Error("Error getting tickets.");
 		}
+	}
+
+	public async getTicket(userId: string, ticketId: string): Promise<any> {
+		const user = await UserModel.findById({ _id: userId });
+
+		if (!user) {
+			throw new Error("User not found.");
+		}
+
+		// todo - Should this user id be included in the search criteria?
+		const ticket = await TicketModel.findOne({ _id: ticketId });
+
+		return ticket;
 	}
 
 	public async getTicketsById(id: string): Promise<any> {
@@ -24,26 +39,38 @@ class TicketService {
 		return tickets;
 	}
 
-	public async createTicket(ticketData: any): Promise<any> {
-		const user = await UserModel.findById(ticketData.user);
+	public async createTicket(ticketData: ICreateTicket): Promise<any> {
+		const user = await UserModel.findById(ticketData.userId);
 
 		if (!user) {
 			throw new Error("User not found.");
 		}
-		const ticket = await TicketModel.create(ticketData);
+
+		const newTicket = {
+			user: user._id,
+			email: ticketData.email,
+			name: ticketData.name,
+			product: ticketData.product,
+			description: ticketData.description,
+		};
+
+		const ticket = await TicketModel.create(newTicket);
 
 		return ticket;
 	}
 
 	// Todo - type params
-	public async updateTicket(ticketId: string, ticketData: any): Promise<any> {
+	public async updateTicket(
+		ticketId: string,
+		ticketData: IUpdateTicket
+	): Promise<any> {
 		const ticket = await TicketModel.findById(ticketId);
 
 		if (!ticket) {
 			throw new Error("Ticket not found.");
 		}
 
-		if (ticket.user.toString() !== ticketData.user) {
+		if (ticket.user.toString() !== ticketData.userId) {
 			throw new Error("You can't update a ticket that doesn't belong to you.");
 		}
 
@@ -53,20 +80,20 @@ class TicketService {
 			{ new: true }
 		);
 
-		console.log({ updateTicket });
-
 		return updateTicket;
 	}
 
-	// Todo - type params
-	public async removeTicket(ticketId: string, ticketData: any): Promise<any> {
+	public async removeTicket(
+		ticketId: string,
+		ticketData: { userId: string }
+	): Promise<any> {
 		const ticket = await TicketModel.findById(ticketId);
 
 		if (!ticket) {
 			throw new Error("Ticket not found.");
 		}
 
-		if (ticket.user.toString() !== ticketData.user) {
+		if (ticket.user.toString() !== ticketData.userId) {
 			throw new Error("You can't update a ticket that doesn't belong to you.");
 		}
 

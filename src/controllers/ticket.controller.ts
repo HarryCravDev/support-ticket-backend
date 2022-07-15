@@ -3,6 +3,7 @@ import {
 	Controller,
 	Delete,
 	Get,
+	Header,
 	Path,
 	Post,
 	Put,
@@ -13,6 +14,8 @@ import ITicket from "../types/ITicket";
 import IGenericSuccessResponse from "../types/IGenericSuccessResponse";
 import IGenericFailureResponse from "../types/IGenericFailureResponse";
 import ticketService from "../services/ticket.service";
+import ICreateTicket from "../types/ICreateTicket";
+import IUpdateTicket from "../types/IUpdateTicket";
 
 @Route("v1/api/ticket")
 export class TicketController extends Controller {
@@ -31,6 +34,30 @@ export class TicketController extends Controller {
 			};
 		} catch (error: any) {
 			return { success: false, message: error.message };
+		}
+	}
+
+	@Security("jwt")
+	@Get("{ticketId}")
+	public async getTicket(
+		@Path() ticketId: string,
+		@Header() userId: string
+	): Promise<IGenericSuccessResponse | IGenericFailureResponse> {
+		try {
+			const res = await ticketService.getTicket(userId, ticketId);
+
+			return {
+				success: true,
+				message: `Successfully retrieved ticket ${ticketId}.`,
+				data: res,
+			};
+		} catch (error: any) {
+			this.setStatus(500);
+			let message = error.message;
+
+			if (error.message.includes("User not found.")) this.setStatus(404);
+
+			return { success: false, message: message };
 		}
 	}
 
@@ -60,15 +87,17 @@ export class TicketController extends Controller {
 	@Security("jwt")
 	@Post()
 	public async createTicket(
-		@Body() ticketData: any
+		@Body()
+		ticketData: ICreateTicket
 	): Promise<IGenericSuccessResponse | IGenericFailureResponse> {
 		this.setStatus(201);
 		try {
+			console.log("Create ticket fired");
 			const res = await ticketService.createTicket(ticketData);
 
 			return {
 				success: true,
-				message: "Ticket create.",
+				message: "Ticket created.",
 				data: res,
 			};
 		} catch (error: any) {
@@ -86,7 +115,7 @@ export class TicketController extends Controller {
 	@Put("{ticketId}")
 	public async updateTicket(
 		@Path() ticketId: string,
-		@Body() ticketData: any
+		@Body() ticketData: IUpdateTicket
 	): Promise<IGenericSuccessResponse | IGenericFailureResponse> {
 		this.setStatus(201);
 		try {
@@ -115,7 +144,7 @@ export class TicketController extends Controller {
 	@Delete("{ticketId}")
 	public async removeTicket(
 		@Path() ticketId: string,
-		@Body() ticketData: any
+		@Body() ticketData: { userId: string }
 	): Promise<IGenericSuccessResponse | IGenericFailureResponse> {
 		this.setStatus(201);
 		try {
