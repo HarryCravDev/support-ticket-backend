@@ -42,6 +42,12 @@ docker-compose up -d
 ```
 
 4:
+Before we start the app, we will need to build it. Navigate to the root of the project and run the following command...
+```bash
+npm run build
+```
+
+5:
 Now let's start up the app. Navigate to the root of the project and run the following command...
 ```bash
 npm run dev
