@@ -1,52 +1,37 @@
-
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const colors = require("colors");
-const users = require("./data/users");
-const products = require("./data/products");
-const User = require("./models/userModel");
-const Product = require("./models/productModel");
-const Order = require("./models/orderModel");
-const connectDB = require("./config/db");
-
-dotenv.config();
+import users from "../data/Users";
+import tickets from "../data/Tickets";
+import UserModel from "../../models/User.model";
+import TicketModel from "../../models/Ticket.model";
+import connectDB from "../../utils/db/connectDb";
 
 connectDB();
 
 const importData = async () => {
   try {
-    await User.deleteMany();
-    await Product.deleteMany();
-    await Order.deleteMany();
+    await UserModel.deleteMany();
+    await TicketModel.deleteMany();
 
-    const createdUsers = await User.insertMany(users);
+    await UserModel.insertMany(users);
 
-    const adminUser = createdUsers[0]._id;
+    await TicketModel.insertMany(tickets);
 
-    const sampleProducts = products.map((product) => {
-      return { ...product, user: adminUser };
-    });
-
-    await Product.insertMany(sampleProducts);
-
-    console.log("Data Imported!".green.inverse);
+    console.log("Data Imported!");
     process.exit();
   } catch (error) {
-    console.error(`${error}`.red.inverse);
+    console.error(`Error occurred when importing data: ${error}`);
     process.exit(1);
   }
 };
 
 const destroyData = async () => {
   try {
-    await User.deleteMany();
-    await Product.deleteMany();
-    await Order.deleteMany();
+    await UserModel.deleteMany();
+    await TicketModel.deleteMany();
 
-    console.log("Data Deleted!".red.inverse);
+    console.log("Data Deleted!");
     process.exit();
   } catch (error) {
-    console.error(`${error}`.red.inverse);
+    console.error(`Error occurred when deleting data: ${error}`);
     process.exit(1);
   }
 };
